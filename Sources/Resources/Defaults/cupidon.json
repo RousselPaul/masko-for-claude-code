@@ -1,6 +1,7 @@
 {
   "version": "2.0",
   "name": "Cupidon",
+  "canvasName": "Claude Code 4-State",
   "initialNode": "71cc0e85-eb1c-46d5-850a-6bc17a150d1f",
   "autoPlay": true,
   "nodes": [
@@ -26,6 +27,54 @@
     }
   ],
   "edges": [
+    {
+      "id": "ba25187d-ea8f-46f0-851c-3340980e5863",
+      "source": "71cc0e85-eb1c-46d5-850a-6bc17a150d1f",
+      "target": "71cc0e85-eb1c-46d5-850a-6bc17a150d1f",
+      "isLoop": true,
+      "duration": 3,
+      "conditions": [],
+      "videos": {
+        "webm": "https://assets.masko.ai/07d95e/cupidon-2724/idle-175da20f.webm",
+        "hevc": "https://assets.masko.ai/07d95e/cupidon-2724/idle-858bfc54.mov"
+      }
+    },
+    {
+      "id": "e0c025fb-8568-4fc2-9266-151fbc139b36",
+      "source": "1558429f-af14-4af3-9f4b-d06fa9ad9882",
+      "target": "1558429f-af14-4af3-9f4b-d06fa9ad9882",
+      "isLoop": true,
+      "duration": 3,
+      "conditions": [],
+      "videos": {
+        "webm": "https://assets.masko.ai/07d95e/cupidon-2724/working-97d867d2.webm",
+        "hevc": "https://assets.masko.ai/07d95e/cupidon-2724/working-953a3c52.mov"
+      }
+    },
+    {
+      "id": "4c2158a9-c67f-4ea6-818a-1fec64cc7e5e",
+      "source": "637ca835-920a-45de-ad29-9034bc2f6bfd",
+      "target": "637ca835-920a-45de-ad29-9034bc2f6bfd",
+      "isLoop": true,
+      "duration": 3,
+      "conditions": [],
+      "videos": {
+        "webm": "https://assets.masko.ai/07d95e/cupidon-2724/needs-attention-168bb4fc.webm",
+        "hevc": "https://assets.masko.ai/07d95e/cupidon-2724/needs-attention-c851bdb1.mov"
+      }
+    },
+    {
+      "id": "13c608e5-5759-495e-977b-3e10bb391c4f",
+      "source": "d6860f41-6420-466d-b791-94d3d1d8c4b7",
+      "target": "d6860f41-6420-466d-b791-94d3d1d8c4b7",
+      "isLoop": true,
+      "duration": 5,
+      "conditions": [],
+      "videos": {
+        "webm": "https://assets.masko.ai/07d95e/cupidon-2724/thinking-5967b31b.webm",
+        "hevc": "https://assets.masko.ai/07d95e/cupidon-2724/thinking-60a77321.mov"
+      }
+    },
     {
       "id": "1b51225f-cb9e-4595-8d31-4b3985fed90f",
       "source": "71cc0e85-eb1c-46d5-850a-6bc17a150d1f",
@@ -317,6 +366,5 @@
         "hevc": "https://assets.masko.ai/07d95e/cupidon-2724/thinking-needs-attention-54b147c5.mov"
       }
     }
-  ],
-  "slug": "cupidon"
+  ]
 }
