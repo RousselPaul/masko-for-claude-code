@@ -101,12 +101,23 @@ final class AppStore {
             self.hotkeyManager.confirmTrigger += 1
         }
 
-        // Wire hotkey manager — ⌘Esc dismisses (denies) topmost permission
+        // Wire hotkey manager — ⌘Esc dismisses (denies) topmost non-collapsed permission
         hotkeyManager.onDismissPermission = { [weak self] in
             guard let self else { return }
             let reversed = Array(self.pendingPermissionStore.pending.reversed())
-            guard let topPerm = reversed.first else { return }
+            guard let topPerm = reversed.first(where: { !self.pendingPermissionStore.collapsed.contains($0.id) }) else { return }
             self.pendingPermissionStore.resolve(id: topPerm.id, decision: .deny)
+        }
+
+        // Wire hotkey manager — ⌘L toggles collapse: collapse topmost, or expand if all collapsed
+        hotkeyManager.onCollapsePermission = { [weak self] in
+            guard let self else { return }
+            let reversed = Array(self.pendingPermissionStore.pending.reversed())
+            if let topNonCollapsed = reversed.first(where: { !self.pendingPermissionStore.collapsed.contains($0.id) }) {
+                self.pendingPermissionStore.collapse(id: topNonCollapsed.id)
+            } else if let topCollapsed = reversed.first {
+                self.pendingPermissionStore.expand(id: topCollapsed.id)
+            }
         }
 
         // Wire hotkey manager — toggle focus via configurable shortcut

@@ -275,13 +275,17 @@ struct AskUserQuestionView: View {
                     if showShortcuts { ActionBadge(label: "⌘M") }
                 }
 
-                Button { onLater() } label: {
-                    Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 10))
-                        .foregroundStyle(OverlayStyle.textHint)
+                HStack(spacing: 3) {
+                    Button { onLater() } label: {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 10))
+                            .foregroundStyle(OverlayStyle.textHint)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Handle later")
+
+                    if showShortcuts { ActionBadge(label: "⌘L") }
                 }
-                .buttonStyle(.plain)
-                .help("Handle later")
             }
 
             ScrollView(.vertical, showsIndicators: true) {
@@ -579,13 +583,17 @@ struct ExitPlanModeView: View {
                     if showShortcuts { ActionBadge(label: "⌘M") }
                 }
 
-                Button { onLater() } label: {
-                    Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 10))
-                        .foregroundStyle(OverlayStyle.textHint)
+                HStack(spacing: 3) {
+                    Button { onLater() } label: {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 10))
+                            .foregroundStyle(OverlayStyle.textHint)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Handle later")
+
+                    if showShortcuts { ActionBadge(label: "⌘L") }
                 }
-                .buttonStyle(.plain)
-                .help("Handle later")
             }
 
             // Plan content (rendered as markdown)
@@ -843,13 +851,17 @@ struct PermissionPromptView: View {
                     if showShortcuts { ActionBadge(label: "⌘M") }
                 }
 
-                Button { onLater() } label: {
-                    Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 10))
-                        .foregroundStyle(OverlayStyle.textHint)
+                HStack(spacing: 3) {
+                    Button { onLater() } label: {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 10))
+                            .foregroundStyle(OverlayStyle.textHint)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Handle later")
+
+                    if showShortcuts { ActionBadge(label: "⌘L") }
                 }
-                .buttonStyle(.plain)
-                .help("Handle later")
             }
 
             // Code preview
@@ -1016,31 +1028,37 @@ private struct CollapsedPermissionPill: View {
             .buttonStyle(.plain)
             .help("Open terminal")
 
+            if showShortcuts { ActionBadge(label: "⌘M") }
+
+            Button { onExpand() } label: {
+                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    .font(.system(size: 9))
+                    .foregroundStyle(OverlayStyle.textHint)
+            }
+            .buttonStyle(.plain)
+            .help("Expand")
+
+            if showShortcuts { ActionBadge(label: "⌘L") }
+
             Button { onAllow() } label: {
-                HStack(spacing: 3) {
-                    Text("Allow")
-                        .font(Constants.heading(size: 9, weight: .semibold))
-                        .foregroundStyle(.white)
-                    if showShortcuts { ActionBadge(label: "⌘↩") }
-                }
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(OverlayStyle.orange)
-                .clipShape(RoundedRectangle(cornerRadius: 5))
+                Text("Allow")
+                    .font(Constants.heading(size: 9, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(OverlayStyle.orange)
+                    .clipShape(RoundedRectangle(cornerRadius: 5))
             }
             .buttonStyle(.plain)
 
             Button { onDeny() } label: {
-                HStack(spacing: 3) {
-                    Text("Deny")
-                        .font(Constants.heading(size: 9, weight: .semibold))
-                        .foregroundStyle(OverlayStyle.denyText)
-                    if showShortcuts { ActionBadge(label: "⌘⎋") }
-                }
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .clipShape(RoundedRectangle(cornerRadius: 5))
-                .overlay(RoundedRectangle(cornerRadius: 5).stroke(OverlayStyle.denyBorder, lineWidth: 1))
+                Text("Deny")
+                    .font(Constants.heading(size: 9, weight: .semibold))
+                    .foregroundStyle(OverlayStyle.denyText)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                    .overlay(RoundedRectangle(cornerRadius: 5).stroke(OverlayStyle.denyBorder, lineWidth: 1))
             }
             .buttonStyle(.plain)
         }
@@ -1098,9 +1116,14 @@ struct PermissionStackView: View {
                     .padding(.vertical, 3)
                 }
 
+                let firstNonCollapsedId = pendingPermissionStore.pending.reversed()
+                    .first(where: { !pendingPermissionStore.collapsed.contains($0.id) })?.id
+                let firstCollapsedId: UUID? = firstNonCollapsedId == nil
+                    ? pendingPermissionStore.pending.reversed().first?.id
+                    : nil
+
                 ForEach(Array(pendingPermissionStore.pending.reversed().enumerated()), id: \.element.id) { index, perm in
-                    let isTopmost = index == 0
-                    let showShortcuts = hotkeyManager.isCmdHeld && isTopmost
+                    let showShortcuts = hotkeyManager.isCmdHeld && (perm.id == firstNonCollapsedId || perm.id == firstCollapsedId)
 
                     if pendingPermissionStore.collapsed.contains(perm.id) {
                         CollapsedPermissionPill(

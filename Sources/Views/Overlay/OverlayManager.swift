@@ -582,7 +582,7 @@ final class OverlayManager {
         let permSize = CGSize(width: max(contentSize.width, 280), height: contentSize.height)
 
         let mascotFrame = panel.frame
-        let screen = NSScreen.main?.visibleFrame ?? .zero
+        let screen = panel.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
         let gap: CGFloat = 4
         let statsTop = statsPanel?.frame.maxY ?? mascotFrame.maxY
 
@@ -600,34 +600,34 @@ final class OverlayManager {
             tailSide = .bottom
             tailPercent = (mascotFrame.midX - origin.x) / permSize.width
         }
-        // 2. RIGHT
+        // 2. Side placement — prefer toward screen center
         else {
+            let leftX = mascotFrame.minX - permSize.width - gap
             let rightX = mascotFrame.maxX + gap
-            if rightX + permSize.width <= screen.maxX {
+            let leftFits = leftX >= screen.minX
+            let rightFits = rightX + permSize.width <= screen.maxX
+            let preferLeft = mascotFrame.midX > screen.midX
+
+            if (preferLeft && leftFits) || (!rightFits && leftFits) {
+                let y = max(screen.minY, min(statsTop - permSize.height, screen.maxY - permSize.height))
+                origin = CGPoint(x: leftX, y: y)
+                tailSide = .right
+                tailPercent = 1.0 - ((mascotFrame.midY - origin.y) / permSize.height)
+            } else if rightFits {
                 let y = max(screen.minY, min(statsTop - permSize.height, screen.maxY - permSize.height))
                 origin = CGPoint(x: rightX, y: y)
                 tailSide = .left
                 tailPercent = 1.0 - ((mascotFrame.midY - origin.y) / permSize.height)
             }
-            // 3. LEFT
+            // 3. BELOW (fallback)
             else {
-                let leftX = mascotFrame.minX - permSize.width - gap
-                if leftX >= screen.minX {
-                    let y = max(screen.minY, min(statsTop - permSize.height, screen.maxY - permSize.height))
-                    origin = CGPoint(x: leftX, y: y)
-                    tailSide = .right
-                    tailPercent = 1.0 - ((mascotFrame.midY - origin.y) / permSize.height)
-                }
-                // 4. BELOW (fallback)
-                else {
-                    let belowY = mascotFrame.minY - permSize.height - gap
-                    origin = CGPoint(
-                        x: max(screen.minX, min(mascotFrame.midX - permSize.width / 2, screen.maxX - permSize.width)),
-                        y: max(screen.minY, belowY)
-                    )
-                    tailSide = .top
-                    tailPercent = (mascotFrame.midX - origin.x) / permSize.width
-                }
+                let belowY = mascotFrame.minY - permSize.height - gap
+                origin = CGPoint(
+                    x: max(screen.minX, min(mascotFrame.midX - permSize.width / 2, screen.maxX - permSize.width)),
+                    y: max(screen.minY, belowY)
+                )
+                tailSide = .top
+                tailPercent = (mascotFrame.midX - origin.x) / permSize.width
             }
         }
 

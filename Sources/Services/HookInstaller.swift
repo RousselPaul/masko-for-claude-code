@@ -120,7 +120,7 @@ enum HookInstaller {
         try writeSettings(settings)
     }
 
-    private static let scriptVersion = "# version: 9"
+    private static let scriptVersion = "# version: 11"
 
     /// Create or update hook-sender.sh
     static func ensureScriptExists() throws {
@@ -159,9 +159,9 @@ enum HookInstaller {
         while [ "$CUR" != "1" ] && [ -n "$CUR" ]; do
           PAR=$(ps -o ppid= -p "$CUR" 2>/dev/null | tr -d ' ')
           [ -z "$PAR" ] && break
-          COMM=$(ps -o comm= -p "$PAR" 2>/dev/null | xargs basename 2>/dev/null)
+          COMM=$(ps -o comm= -p "$PAR" 2>/dev/null); COMM="${COMM##*/}"
           case "$COMM" in
-            zsh|bash|fish|sh|nu|pwsh|elvish) LAST_SHELL="$PAR" ;;
+            zsh|bash|fish|sh|nu|pwsh|elvish|-zsh|-bash|-fish|-sh) LAST_SHELL="$PAR" ;;
             Terminal|iTerm2|wezterm-gui|kitty|Cursor|Code|Windsurf|ghostty|alacritty|Warp|Zed) TERM_PID="$PAR"; SHELL_PID="$LAST_SHELL"; break ;;
           esac
           CUR="$PAR"

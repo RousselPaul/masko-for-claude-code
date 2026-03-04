@@ -57,6 +57,9 @@ final class GlobalHotkeyManager {
     /// Called when ⌘Esc dismisses (skips/denies) the topmost permission.
     var onDismissPermission: (() -> Void)?
 
+    /// Called when ⌘L collapses (later) the topmost non-collapsed permission.
+    var onCollapsePermission: (() -> Void)?
+
     // MARK: - Private
 
     let shared = HotkeySharedState()
@@ -336,6 +339,12 @@ private func globalHotkeyCallback(
         // ⌘Enter: confirm selected button
         if keyCode == 36, state.hasPendingPermissions {
             DispatchQueue.main.async { manager.onConfirmPermission?() }
+            return nil // consume
+        }
+
+        // ⌘L: collapse (later) topmost non-collapsed permission
+        if keyCode == 37, state.hasPendingPermissions {
+            DispatchQueue.main.async { manager.onCollapsePermission?() }
             return nil // consume
         }
 

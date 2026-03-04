@@ -34,7 +34,14 @@ enum IDETerminalFocus {
             }
         }
 
-        // Fallback: bring IDE/terminal to foreground
+        // Try terminal-specific tab switching (iTerm2, Terminal.app)
+        if let shellPid, let bundleId {
+            if activateTerminalTab(bundleId: bundleId, shellPid: shellPid) {
+                return
+            }
+        }
+
+        // Fallback: bring IDE/terminal to foreground (no tab switch)
         if let bundleId {
             activateApp(bundleId: bundleId)
             return
@@ -61,6 +68,100 @@ enum IDETerminalFocus {
                 activateApp(bundleId: id)
                 return
             }
+        }
+    }
+
+    /// Get the tty name for a given PID (e.g. "ttys003").
+    private static func ttyForPid(_ pid: Int) -> String? {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/ps")
+        process.arguments = ["-o", "tty=", "-p", "\(pid)"]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+            process.waitUntilExit()
+            guard process.terminationStatus == 0 else { return nil }
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            return String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        } catch { return nil }
+    }
+
+    /// Try to switch to the exact terminal tab matching shellPid's tty.
+    /// Returns true if a terminal-specific AppleScript succeeded.
+    private static func activateTerminalTab(bundleId: String, shellPid: Int) -> Bool {
+        guard let tty = ttyForPid(shellPid), !tty.isEmpty else { return false }
+        let ttyDevice = "/dev/\(tty)"
+
+        let script: String?
+        switch bundleId {
+        case "com.googlecode.iterm2":
+            script = """
+            tell application "iTerm2"
+                activate
+                repeat with aWindow in windows
+                    repeat with aTab in tabs of aWindow
+                        repeat with aSession in sessions of aTab
+                            if tty of aSession is "\(ttyDevice)" then
+                                select aTab
+                                return
+                            end if
+                        end repeat
+                    end repeat
+                end repeat
+            end tell
+            """
+        case "com.apple.Terminal":
+            script = """
+            tell application "Terminal"
+                activate
+                repeat with aWindow in windows
+                    repeat with aTab in tabs of aWindow
+                        if tty of aTab is "\(ttyDevice)" then
+                            set selected tab of aWindow to aTab
+                            set index of aWindow to 1
+                            return
+                        end if
+                    end repeat
+                end repeat
+            end tell
+            """
+        default:
+            script = nil
+        }
+
+        guard let src = script else { return false }
+        // Try in-process first (works in .app bundle with NSAppleEventsUsageDescription)
+        if let appleScript = NSAppleScript(source: src) {
+            var error: NSDictionary?
+            appleScript.executeAndReturnError(&error)
+            if let error {
+                let code = error[NSAppleScript.errorNumber] as? Int ?? 0
+                // -1743 = not authorized — try osascript subprocess as fallback
+                if code == -1743 {
+                    return runOsascript(src)
+                }
+                return false
+            }
+            return true
+        }
+        return false
+    }
+
+    /// Run AppleScript via osascript subprocess (inherits caller's Automation permissions).
+    private static func runOsascript(_ source: String) -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+        process.arguments = ["-e", source]
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+            process.waitUntilExit()
+            return process.terminationStatus == 0
+        } catch {
+            return false
         }
     }
 

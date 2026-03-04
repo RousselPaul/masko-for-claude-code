@@ -90,7 +90,7 @@ struct PermissionHUDView: View {
     var body: some View {
         PermissionStackView()
             .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: 280, maxHeight: .infinity, alignment: .bottom)
+            .frame(maxWidth: 280)
             .background(GeometryReader { geo in
                 Color.clear
                     .onAppear { config.contentSize = geo.size }
